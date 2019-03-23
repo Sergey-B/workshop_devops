@@ -28,3 +28,10 @@ services:
       - "~/.bash_history:/.bash_history"
       - "./services/app:/usr/src/app:cached"
       - "/tmp:/tmp:delegated"
+    depends_on:
+      - db
+
+  db:
+    image: postgres
+    volumes:
+      - ./tmp/db:/var/lib/postgresql/data
