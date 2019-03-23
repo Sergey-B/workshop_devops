@@ -1,5 +1,4 @@
 include make-app.mk
 
-setup:
-	app-setup
+setup: app-setup
 
