@@ -1,5 +1,5 @@
 setup:
-	bin/setup
+	app-setup
 
 install:
 	bundle install --path vendor/bundle
