@@ -1,11 +1,27 @@
+---
+
 version: '3.3'
 
 services:
+  nginx:
+   build:
+     context: services/nginx
+     dockerfile: Dockerfile
+   command: /bin/bash -c "exec nginx -g 'daemon off;'"
+   ports:
+     - "80:80"
+   volumes:
+     - "./services/nginx/devops.conf:/devops.conf"
+   environment:
+     NGINX_SERVER_ADDRESS: 'app'
+   depends_on:
+     - app
+
   app:
     build:
       context: services/app
       dockerfile: Dockerfile.development
-    command: sh -c "bundle exec puma -p 3000 -e development"
+    command: sh -c "bundle exec puma -t 1:1 -p 3000 -e development"
     ports:
       - "3000:3000"
     volumes:
