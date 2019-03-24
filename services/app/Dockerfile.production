@@ -1,16 +1,26 @@
-FROM ruby:2.5
+FROM ruby:2.5.1
 
-RUN apt-get update && apt-get install -y \
-  build-essential \
-  nodejs
+RUN apt-get update \
+    && apt-get install -y apt-transport-https \
+    && curl --silent --show-error --location \
+      https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - \
+    && echo "deb https://deb.nodesource.com/node_6.x/ stretch main" > /etc/apt/sources.list.d/nodesource.list \
+    && curl --silent --show-error --location https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
+    && echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+    postgresql-client nodejs apt-transport-https yarn \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-WORKDIR /tmp
-ADD Gemfile* ./
+WORKDIR /usr/src/app
 
-RUN gem install bundler && bundle install --jobs 20 --retry 5
+ENV RAILS_ENV=production
+ENV NODE_ENV=production
 
-ENV PROJECT_ROOT /usr/src/app
-COPY . $PROJECT_ROOT
-WORKDIR $PROJECT_ROOT
+COPY Gemfile* package.json yarn.lock ./
+RUN bundle install
+RUN yarn install
 
-CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]
+COPY . .
+
+RUN SECRET_KEY_BASE="secret_key_base" bundle exec rake assets:precompile
