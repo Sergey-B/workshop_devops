@@ -1,0 +1,13 @@
+# -*- mode: yaml; vault: true; -*-
+---
+
+workshop_devops_vault_github_client_id_ru: "4c8040727fface68d59a"
+workshop_devops_vault_github_client_secret_ru: "3bd561a6859ba09b4427d6960a89e4a9060cf605"
+workshop_devops_vault_db_hostname: "db"
+workshop_devops_vault_db_username: "postgres"
+workshop_devops_vault_db_pool_size: 2
+workshop_devops_vault_db_password: ""
+workshop_devops_vault_db_name: "workshop_devops_dev"
+workshop_devops_vault_secret_key_base: "bdb20df245ebe8e25f593199691ca4e87c60802d978366dbb0875e9457f2d15c4af6e82d116a52f9f8121a682889c7d4091dfbe50a0ad7eaeabf82d7708d05a1"
+workshop_devops:
+  vault_rollbar_access_token: ""

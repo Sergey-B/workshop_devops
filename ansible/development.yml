@@ -1,0 +1,14 @@
+---
+
+- hosts: all
+  gather_facts: no
+  tasks:
+    - pip:
+        name:
+          - docker
+          - docker-py
+
+    - template:
+        src: environment.j2
+        dest: '../.env'
+      tags: env

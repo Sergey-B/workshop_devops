@@ -23,13 +23,14 @@ services:
       dockerfile: Dockerfile.development
     command: sh -c "bundle exec puma -t 1:1 -p 3000 -e development"
     ports:
-      - "3000:3000"
+      - "${PORT}:${PORT}"
     volumes:
       - "~/.bash_history:/.bash_history"
       - "./services/app:/usr/src/app:cached"
       - "/tmp:/tmp:delegated"
     depends_on:
       - db
+    env_file: ".env"
 
   db:
     image: postgres
