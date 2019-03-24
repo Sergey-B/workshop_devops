@@ -2,6 +2,8 @@
 ansible_python_interpreter: "/usr/bin/env python3"
 workshop_devops_rails_env: "development"
 workshop_devops_repository: "git@github.com:Sergey-B/workshop-devops.git"
+workshop_devops_image_name: "sergeyb3/workshop-devops-app"
+workshop_devops_nginx_image_name: "sergeyb3/workshop-devops-nginx"
 workshop_devops_directory_to_clone: /var/tmp/workshop-devops
 workshop_devops_port: 3000
 workshop_devops_aws_region: eu-central-1

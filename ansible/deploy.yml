@@ -1,0 +1,100 @@
+---
+- hosts: all
+  gather_facts: false
+  vars_prompt:
+    - name: "workshop_devops_image_tag"
+      prompt: "Workshop Devops image tag"
+      private: false
+
+  tasks:
+    - set_fact: workshop_devops_image_tag={{ workshop_devops_image_tag }}
+      tags: always
+
+- hosts: webservers
+  gather_facts: false
+
+  tasks:
+    - name: Create a network
+      docker_network:
+        name: "{{ workshop_devops_docker_network }}"
+
+    - template:
+        src: environment.j2
+        dest: "{{ workshop_devops_env_file }}"
+      tags: env
+
+    - name: download app image
+      docker_image:
+        name: "{{ workshop_devops_image_name }}:{{ workshop_devops_image_tag }}"
+        force: true
+
+    - name: download nginx image
+      docker_image:
+        name: "{{ workshop_devops_nginx_image_name }}:{{ workshop_devops_image_tag }}"
+        force: true
+
+    - name: download postgres image
+      docker_image:
+        name: "{{ workshop_devops_postgres_image_name }}:{{ workshop_devops_image_tag }}"
+        force: true
+
+    - name: run migrations
+      docker_container:
+        recreate: true
+        detach: false
+        name: workshop-devops-migrations
+        command: "bundle exec rake db:migrate"
+        image: "{{ workshop_devops_image_name }}:{{ workshop_devops_image_tag }}"
+        state: started
+        env_file: "{{ workshop_devops_env_file }}"
+        env:
+          RAILS_ENV: production
+        volumes:
+          - "/tmp:/tmp"
+          - "/var/tmp:/var/tmp"
+      run_once: true
+      tags: [webserver]
+
+    - name: start nginx
+      docker_container:
+        recreate: true
+        name: workshop-devops-nginx
+        image: "{{ workshop_devops_nginx_image_name }}:{{ workshop_devops_image_tag }}"
+        state: started
+        restart_policy: always
+        published_ports:
+          - "80:8080"
+        networks:
+          - name: "{{ workshop_devops_docker_network }}"
+      tags: [webserver]
+
+    - name: start application
+      docker_container:
+        recreate: true
+        name: app
+        image: "{{ workshop_devops_image_name }}:{{ workshop_devops_image_tag }}"
+        state: started
+        log_driver: syslog
+        restart_policy: always
+        env_file: "{{ workshop_devops_env_file }}"
+        env:
+          RAILS_ENV: production
+          NODE_ENV: production
+        # published_ports:
+        #   - "80:{{ workshop_devops_port }}"
+        volumes:
+          - "/var/run/docker.sock:/var/run/docker.sock"
+          - "/tmp:/tmp"
+          - "/opt:/opt"
+          - "/var/tmp:/var/tmp"
+        networks:
+          - name: "{{ workshop_devops_docker_network }}"
+      tags: [webserver]
+
+    - lineinfile:
+        regexp: "workshop_devops_VERSION"
+        line: "workshop_devops_VERSION={{ workshop_devops_image_tag }}"
+        dest: /etc/environment
+        backup: true
+        state: present
+      become: true

@@ -1,0 +1,66 @@
+---
+
+- hosts: all
+  gather_facts: no
+
+  pre_tasks:
+    - apt:
+        update_cache: true
+        name:
+          - python3
+          - python3-pip
+      become: true
+
+    - name: ensure group docker exists
+      group:
+        name: docker
+      become: true
+
+    - pip:
+        name: docker
+      become: true
+
+  tasks:
+    - name: Add Docker GPG key
+      apt_key: url=https://download.docker.com/linux/ubuntu/gpg
+
+    - name: Add Docker APT repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable
+
+    - name: Install list of packages
+      apt:
+        name: ['apt-transport-https','ca-certificates','curl','software-properties-common','docker-ce']
+        state: present
+        update_cache: yes
+
+    - name: create app dir
+      file:
+        path: "{{ workshop_devops_app_path }}"
+        state: directory
+
+  # post_tasks:
+  #   - user:
+  #       name: "{{ workshop_devops_run_user }}"
+  #       groups: docker
+  #       append: true
+  #     become: true
+
+  #   - docker_network:
+  #       name: "{{ workshop_devops_docker_network }}"
+  #     tags: docker_network
+  #     become: true
+
+  #   - template:
+  #       src: environment.j2
+  #       dest: "{{ workshop_devops_env_file }}"
+  #     tags: env
+
+  #   - name: create db dir
+  #     file:
+  #       path: "{{ workshop_devops_app_path }}/db_data"
+  #       state: directory
+  #       mode: 0755
+  #       owner: "{{ workshop_devops_run_user }}"
+  #       group: "{{ workshop_devops_run_user }}"
+  #     become: true

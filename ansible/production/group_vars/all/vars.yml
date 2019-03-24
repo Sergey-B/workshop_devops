@@ -1,3 +1,6 @@
 ---
 ansible_python_interpreter: "/usr/bin/env python3"
 workshop_devops_rails_env: "production"
+workshop_devops_app_path: "/usr/src/app"
+workshop_devops_env_file: "/usr/src/app/.env"
+workshop_devops_run_user: "root"

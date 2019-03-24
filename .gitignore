@@ -1,1 +1,4 @@
 .env
+secrets.auto.tfvars
+terraform.tfvars
+.terraform
