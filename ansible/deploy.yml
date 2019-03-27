@@ -33,10 +33,51 @@
         name: "{{ workshop_devops_nginx_image_name }}:{{ workshop_devops_image_tag }}"
         force: true
 
-    - name: download postgres image
-      docker_image:
-        name: "{{ workshop_devops_postgres_image_name }}:{{ workshop_devops_image_tag }}"
-        force: true
+    - name: start db
+      docker_container:
+        name: db
+        image: "postgres"
+        state: started
+        restart_policy: always
+        detach: true
+        networks:
+          - name: "{{ workshop_devops_docker_network }}"
+
+    - name: create app db
+      docker_container:
+        recreate: true
+        detach: false
+        name: workshop-devops-create-db
+        command: "bundle exec rake db:create"
+        image: "{{ workshop_devops_image_name }}:{{ workshop_devops_image_tag }}"
+        state: started
+        env_file: "{{ workshop_devops_env_file }}"
+        env:
+          RAILS_ENV: production
+        volumes:
+          - "/tmp:/tmp"
+          - "/var/tmp:/var/tmp"
+        networks:
+          - name: "{{ workshop_devops_docker_network }}"
+      run_once: true
+      tags: [webserver]
+
+    - name: migrate database
+      docker_container:
+        recreate: true
+        detach: false
+        name: workshop-devops-create-db
+        command: "bundle exec rake db:migrate"
+        image: "{{ workshop_devops_image_name }}:{{ workshop_devops_image_tag }}"
+        state: started
+        env_file: "{{ workshop_devops_env_file }}"
+        env:
+          RAILS_ENV: production
+        volumes:
+          - "/tmp:/tmp"
+          - "/var/tmp:/var/tmp"
+      run_once: true
+      tags: [webserver migrations]
 
     - name: run migrations
       docker_container:
@@ -52,8 +93,10 @@
         volumes:
           - "/tmp:/tmp"
           - "/var/tmp:/var/tmp"
+        networks:
+          - name: "{{ workshop_devops_docker_network }}"
       run_once: true
-      tags: [webserver]
+      tags: [webserver migrations]
 
     - name: start nginx
       docker_container:
@@ -62,8 +105,9 @@
         image: "{{ workshop_devops_nginx_image_name }}:{{ workshop_devops_image_tag }}"
         state: started
         restart_policy: always
+        env_file: "{{ workshop_devops_env_file }}"
         published_ports:
-          - "80:8080"
+          - "80:80"
         networks:
           - name: "{{ workshop_devops_docker_network }}"
       tags: [webserver]
@@ -74,14 +118,13 @@
         name: app
         image: "{{ workshop_devops_image_name }}:{{ workshop_devops_image_tag }}"
         state: started
-        log_driver: syslog
+        command: sh -c "bundle exec puma -t 1:1 -p 3000 -e production"
+        # log_driver: syslog
         restart_policy: always
         env_file: "{{ workshop_devops_env_file }}"
         env:
           RAILS_ENV: production
           NODE_ENV: production
-        # published_ports:
-        #   - "80:{{ workshop_devops_port }}"
         volumes:
           - "/var/run/docker.sock:/var/run/docker.sock"
           - "/tmp:/tmp"

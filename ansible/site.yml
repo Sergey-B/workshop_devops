@@ -30,7 +30,16 @@
 
     - name: Install list of packages
       apt:
-        name: ['apt-transport-https','ca-certificates','curl','software-properties-common','docker-ce']
+        name: [
+          'apt-transport-https',
+          'ca-certificates',
+          'curl',
+          'software-properties-common',
+          'docker-ce',
+          'postgresql',
+          'libpq-dev',
+          'python-psycopg2'
+        ]
         state: present
         update_cache: yes
 
@@ -39,28 +48,59 @@
         path: "{{ workshop_devops_app_path }}"
         state: directory
 
-  # post_tasks:
-  #   - user:
-  #       name: "{{ workshop_devops_run_user }}"
-  #       groups: docker
-  #       append: true
-  #     become: true
+  post_tasks:
+    - user:
+        name: "{{ workshop_devops_run_user }}"
+        groups: docker
+        append: true
+      become: true
 
-  #   - docker_network:
-  #       name: "{{ workshop_devops_docker_network }}"
-  #     tags: docker_network
-  #     become: true
+    - docker_network:
+        name: "{{ workshop_devops_docker_network }}"
+      tags: docker_network
+      become: true
 
-  #   - template:
-  #       src: environment.j2
-  #       dest: "{{ workshop_devops_env_file }}"
-  #     tags: env
+    - template:
+        src: environment.j2
+        dest: "{{ workshop_devops_env_file }}"
+      tags: env
 
-  #   - name: create db dir
-  #     file:
-  #       path: "{{ workshop_devops_app_path }}/db_data"
-  #       state: directory
-  #       mode: 0755
-  #       owner: "{{ workshop_devops_run_user }}"
-  #       group: "{{ workshop_devops_run_user }}"
-  #     become: true
+#    - name: create db dir
+#      file:
+#        path: "{{ workshop_devops_app_path }}/db_data"
+#        state: directory
+#        mode: 0755
+#        owner: "{{ workshop_devops_run_user }}"
+#        group: "{{ workshop_devops_run_user }}"
+#      become: true
+#
+#- hosts: webservers
+#  become: true
+#  become_user: postgres
+#  gather_facts: no
+#
+#  vars:
+#    dbname: "{{ workshop_devops_vault_db_name }}"
+#    dbuser: "{{ workshop_devops_vault_db_username }}"
+#    dbpassword: "{{ workshop_devops_vault_db_password }}"
+#
+#  tasks:
+#    - pip:
+#        name: psycopg2-binary
+#
+#    - name: create postgresql db
+#      postgresql_db:
+#        name: "{{dbname}}"
+#        state: present
+#
+#    - name: ensure database is created
+#      postgresql_db: name={{dbname}}
+#
+#    - name: ensure user has access to database
+#      postgresql_user: db={{dbname}} name={{dbuser}} password={{dbpassword}} priv=ALL
+#
+#    - name: ensure user does not have unnecessary privilege
+#      postgresql_user: name={{dbuser}} role_attr_flags=NOSUPERUSER,NOCREATEDB
+#
+#    - name: ensure no other user can access the database
+#      postgresql_privs: db={{dbname}} role=PUBLIC type=database priv=ALL state=absent

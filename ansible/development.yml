@@ -1,8 +1,8 @@
 ---
 
 - hosts: localhost
-	gather_facts: false
-	tasks:
+  gather_facts: false
+  tasks:
     - pip:
         name:
           - docker

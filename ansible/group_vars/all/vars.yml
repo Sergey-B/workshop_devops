@@ -1,6 +1,6 @@
 ---
 ansible_python_interpreter: "/usr/bin/env python3"
-workshop_devops_rails_env: "development"
+workshop_devops_rails_env: "production"
 workshop_devops_repository: "git@github.com:Sergey-B/workshop-devops.git"
 workshop_devops_image_name: "sergeyb3/workshop-devops-app"
 workshop_devops_nginx_image_name: "sergeyb3/workshop-devops-nginx"
